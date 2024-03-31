@@ -152,4 +152,16 @@ mod tests {
     fn magic_number() {
         assert_eq!(MAGIC_NUMBER[0].as_bytes(), b"UF2\n");
     }
+
+    #[test]
+    fn block_checksum() {
+        let mut block = Block::default();
+        assert_eq!(block.has_checksum(), false);
+
+        block.flags |= Flags::Checksum;
+        assert_eq!(block.has_checksum(), true);
+
+        let cksm = block.checksum();
+        assert!(cksm.is_some());
+    }
 }
