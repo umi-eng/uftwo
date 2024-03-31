@@ -291,4 +291,26 @@ mod tests {
         assert_eq!(third.tag, ExtensionTag::DescriptionString);
         assert_eq!(third.data, b"ACME Toaster mk3");
     }
+
+    #[test]
+    fn example_file() {
+        use std::io::prelude::*;
+
+        let mut f = std::fs::File::open("example.uf2").unwrap();
+        let mut buffer = [0; 512];
+
+        f.read(&mut buffer).unwrap();
+
+        let block = Block::ref_from(&buffer).unwrap();
+
+        assert_eq!(block.magic_start_0, MAGIC_NUMBER[0]);
+        assert_eq!(block.magic_start_1, MAGIC_NUMBER[1]);
+        assert_eq!(block.magic_end, MAGIC_NUMBER[2]);
+
+        assert_eq!(block.target_addr, 0x2000);
+        assert_eq!(block.payload_size, 256);
+        assert_eq!(block.block_number, 0);
+        assert_eq!(block.total_block, 1438);
+        assert_eq!(block.file_size_board_family, 0);
+    }
 }
