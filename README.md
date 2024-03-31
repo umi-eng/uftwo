@@ -2,6 +2,8 @@
 
 For working with the [UF2 file format](https://github.com/microsoft/uf2).
 
+Why the name? `uf2` was already taken and appears to be abandoned.
+
 ## Getting started
 
 ```shell
