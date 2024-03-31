@@ -74,6 +74,21 @@ impl Block {
             None
         }
     }
+
+    pub fn has_extensions(&self) -> bool {
+        self.flags.contains(Flags::ExtensionTags)
+    }
+
+    pub fn extensions(&self) -> Option<Extensions> {
+        if self.has_extensions() {
+            let start = self.payload_size as usize;
+            let start = start.next_multiple_of(Extensions::ALIGN);
+            let end = self.data.len();
+            Some(Extensions::new(&self.data[start..end]))
+        } else {
+            None
+        }
+    }
 }
 
 /// Checksum information.
@@ -112,6 +127,77 @@ bitflags::bitflags! {
 }
 
 #[derive(Debug)]
+#[cfg_attr(defmt, defmt::Format)]
+pub struct Extensions<'a> {
+    start: usize,
+    data: &'a [u8],
+}
+
+impl<'a> Extensions<'a> {
+    /// Length byte + tag bytes.
+    const HEADER_SIZE: usize = 4;
+
+    /// Align to 4 byte boundary
+    const ALIGN: usize = 4;
+
+    pub fn new(data: &'a [u8]) -> Self {
+        Self { start: 0, data }
+    }
+
+    fn current_tag(&self) -> ExtensionTag {
+        let tag = u32::from_le_bytes([
+            self.data[self.start + 1],
+            self.data[self.start + 2],
+            self.data[self.start + 3],
+            0,
+        ]);
+        ExtensionTag::from(tag)
+    }
+}
+
+impl<'a> Iterator for Extensions<'a> {
+    type Item = Extension<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.start > self.data.len() {
+            // we are at the end
+            return None;
+        }
+
+        let len = self.data[self.start] as usize;
+
+        if self.start + Self::HEADER_SIZE > self.start + len {
+            // there is no more tags
+            return None;
+        }
+
+        let extension = Extension {
+            tag: self.current_tag(),
+            data: &self.data[self.start + Self::HEADER_SIZE..self.start + len],
+        };
+
+        // incerment start point
+        // i.e where does the next (potential) tag start
+        self.start += len;
+        self.start = self.start.next_multiple_of(Self::ALIGN);
+
+        Some(extension)
+    }
+}
+
+/// An additional piece of information which can be appended after payload
+/// data.
+///
+/// Converting the extension tag to UTF-8 strings or otherwise is an exercise
+/// left to the user.
+#[derive(Debug)]
+#[cfg_attr(defmt, defmt::Format)]
+pub struct Extension<'a> {
+    pub tag: ExtensionTag,
+    pub data: &'a [u8],
+}
+
+#[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
 #[cfg_attr(defmt, defmt::Format)]
 pub enum ExtensionTag {
@@ -163,5 +249,46 @@ mod tests {
 
         let cksm = block.checksum();
         assert!(cksm.is_some());
+    }
+
+    #[test]
+    fn block_extension() {
+        let mut block = Block {
+            flags: Flags::ExtensionTags,
+            payload_size: 0,
+            ..Default::default()
+        };
+
+        // Semver string
+        block.data[0..12].copy_from_slice(&[
+            0x09, 0xbc, 0xc7, 0x9f, 0x30, 0x2e, 0x31, 0x2e, 0x32, 0x00, 0x00,
+            0x00,
+        ]);
+        // Semver string
+        block.data[12..24].copy_from_slice(&[
+            0x09, 0xbc, 0xc7, 0x9f, 0x30, 0x2e, 0x31, 0x2e, 0x32, 0x00, 0x00,
+            0x00,
+        ]);
+        // Device description
+        block.data[24..44].copy_from_slice(&[
+            0x14, 0x9d, 0x0d, 0x65, 0x41, 0x43, 0x4d, 0x45, 0x20, 0x54, 0x6f,
+            0x61, 0x73, 0x74, 0x65, 0x72, 0x20, 0x6d, 0x6b, 0x33,
+        ]);
+
+        assert!(block.extensions().is_some());
+
+        let mut extensions = block.extensions().unwrap();
+
+        let first = extensions.next().unwrap();
+        assert_eq!(first.tag, ExtensionTag::SemverString);
+        assert_eq!(first.data, b"0.1.2");
+
+        let second = extensions.next().unwrap();
+        assert_eq!(second.tag, ExtensionTag::SemverString);
+        assert_eq!(second.data, b"0.1.2");
+
+        let third = extensions.next().unwrap();
+        assert_eq!(third.tag, ExtensionTag::DescriptionString);
+        assert_eq!(third.data, b"ACME Toaster mk3");
     }
 }
