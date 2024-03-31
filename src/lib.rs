@@ -2,8 +2,21 @@
 
 use zerocopy::{AsBytes, FromBytes, FromZeroes};
 
+const MAX_PAYLOAD_SIZE: usize = 476;
+
 /// Magic numbers.
 pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
+
+#[derive(Debug)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+pub enum BlockError {
+    /// There was an issue with the input buffer size or alignment.
+    InputBuffer,
+    /// One or more of the magic numbers were incorrect.
+    MagicNumber,
+    /// Payload size too large.
+    PayloadSize,
+}
 
 /// Block structure.
 ///
@@ -32,7 +45,7 @@ pub struct Block {
     ///
     /// When the MD5 checksum flag is set, the last 24 bytes hold the checksum
     /// as well as address start and length.
-    pub data: [u8; 476],
+    pub data: [u8; MAX_PAYLOAD_SIZE],
     /// Final magic number.
     magic_end: u32,
 }
@@ -60,6 +73,28 @@ impl Default for Block {
 }
 
 impl Block {
+    /// Construct a [`Block`] from a slice.
+    ///
+    /// Returns an error if critical fields are incorrect.
+    pub fn from_bytes_ref(buf: &[u8]) -> Result<&Block, BlockError> {
+        let block = match Block::ref_from(buf) {
+            Some(b) => b,
+            None => return Err(BlockError::InputBuffer),
+        };
+
+        if [block.magic_start_0, block.magic_start_1, block.magic_end]
+            != MAGIC_NUMBER
+        {
+            return Err(BlockError::MagicNumber);
+        }
+
+        if block.payload_size > MAX_PAYLOAD_SIZE as u32 {
+            return Err(BlockError::PayloadSize);
+        }
+
+        Ok(block)
+    }
+
     /// Returns if the checksum flag is set.
     pub fn has_checksum(&self) -> bool {
         self.flags.contains(Flags::Checksum)
@@ -301,7 +336,7 @@ mod tests {
 
         f.read(&mut buffer).unwrap();
 
-        let block = Block::ref_from(&buffer).unwrap();
+        let block = Block::from_bytes_ref(&buffer).unwrap();
 
         assert_eq!(block.magic_start_0, MAGIC_NUMBER[0]);
         assert_eq!(block.magic_start_1, MAGIC_NUMBER[1]);
