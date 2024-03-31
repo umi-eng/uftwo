@@ -137,7 +137,7 @@ impl From<u32> for ExtensionTag {
             0x0be9f7 => Self::TagetPageSize,
             0xb46db0 => Self::Sha2Checksum,
             0xc8a729 => Self::DeviceTypeId,
-            _ => Self::Unknown(value), // not
+            _ => Self::Unknown(value), // still valid, just unknown to us
         }
     }
 }
