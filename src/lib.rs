@@ -23,9 +23,9 @@ pub struct Block {
     /// Number of bytes used in data.
     pub payload_size: u32,
     //// Sequential block number, starting at 0.
-    pub block_no: u32,
+    pub block_number: u32,
     /// Total number of blocks.
-    pub num_blocks: u32,
+    pub total_block: u32,
     /// File size or board family ID or zero.
     pub file_size_board_family: u32,
     /// Payload data, padded with zeros.
@@ -50,8 +50,8 @@ impl Default for Block {
             flags: Flags::default(),
             target_addr: 0,
             payload_size: 0,
-            block_no: 0,
-            num_blocks: 0,
+            block_number: 0,
+            total_block: 0,
             file_size_board_family: 0,
             data: [0; 476],
             magic_end: MAGIC_NUMBER[2],
