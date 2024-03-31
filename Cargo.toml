@@ -1,0 +1,12 @@
+[package]
+name = "uftwo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bitflags = "2.5"
+defmt = { version = "0.3", optional = true }
+zerocopy = { version = "0.7", features = ["derive"] }
+
+[features]
+defmt-03 = ["dep:defmt"]
