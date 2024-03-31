@@ -10,4 +10,4 @@ cargo add uftwo --git https://github.com/umi-eng/uftwo.git
 
 ## Features
 
-- `defmt-03` enable defmt `Format` on relevant types.
+- `defmt-03` enable [defmt](https://github.com/knurling-rs/defmt) `Format` on relevant types.
