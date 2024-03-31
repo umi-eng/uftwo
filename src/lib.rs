@@ -10,7 +10,7 @@ pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
 #[derive(Debug, AsBytes, FromBytes, FromZeroes)]
 #[repr(C)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Block {
     /// First magic number.
     magic_start_0: u32,
@@ -96,7 +96,7 @@ impl Block {
 /// This allows skipping writing data that is the same.
 #[derive(Debug, AsBytes, FromBytes, FromZeroes)]
 #[repr(C)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Checksum {
     start: u32,
     length: u32,
@@ -112,7 +112,7 @@ const _: () = {
     Debug, Default, Clone, Copy, PartialEq, Eq, AsBytes, FromBytes, FromZeroes,
 )]
 #[repr(C)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Flags(u32);
 
 bitflags::bitflags! {
@@ -191,7 +191,7 @@ impl<'a> Iterator for Extensions<'a> {
 /// Converting the extension tag to UTF-8 strings or otherwise is an exercise
 /// left to the user.
 #[derive(Debug)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Extension<'a> {
     pub tag: ExtensionTag,
     pub data: &'a [u8],
@@ -199,7 +199,7 @@ pub struct Extension<'a> {
 
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ExtensionTag {
     /// UTF-8 Semantic Versioning string.
     SemverString = 0x9fc7bc,
