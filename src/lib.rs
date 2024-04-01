@@ -257,8 +257,8 @@ pub enum ExtensionTag {
     Sha2Checksum = 0xb46db0,
     /// Device type identifier.
     DeviceTypeId = 0xc8a729,
-    /// Unknown tag.
-    Unknown(u32),
+    /// Other unknown tag.
+    Other(u32),
 }
 
 impl From<u32> for ExtensionTag {
@@ -269,7 +269,7 @@ impl From<u32> for ExtensionTag {
             0x0be9f7 => Self::TagetPageSize,
             0xb46db0 => Self::Sha2Checksum,
             0xc8a729 => Self::DeviceTypeId,
-            _ => Self::Unknown(value), // still valid, just unknown to us
+            _ => Self::Other(value), // still valid, just unknown to us
         }
     }
 }
