@@ -171,7 +171,7 @@ bitflags::bitflags! {
 /// current block. `.next()` will return `None` when there are no more
 /// extensions left or none defined in the first place.
 #[derive(Debug)]
-#[cfg_attr(defmt, defmt::Format)]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Extensions<'a> {
     start: usize,
     data: &'a [u8],
