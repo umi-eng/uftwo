@@ -76,7 +76,7 @@ impl Block {
     /// Construct a [`Block`] from a slice.
     ///
     /// Returns an error if critical fields are incorrect.
-    pub fn from_bytes_ref(buf: &[u8]) -> Result<&Block, BlockError> {
+    pub fn from_bytes(buf: &[u8]) -> Result<&Block, BlockError> {
         let block = match Block::ref_from(buf) {
             Some(b) => b,
             None => return Err(BlockError::InputBuffer),
@@ -345,7 +345,7 @@ mod tests {
 
         f.read(&mut buffer).unwrap();
 
-        let block = Block::from_bytes_ref(&buffer).unwrap();
+        let block = Block::from_bytes(&buffer).unwrap();
 
         assert_eq!(block.magic_start_0, MAGIC_NUMBER[0]);
         assert_eq!(block.magic_start_1, MAGIC_NUMBER[1]);
