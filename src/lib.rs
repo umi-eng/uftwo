@@ -245,7 +245,7 @@ pub struct Extension<'a> {
 /// Extension tag.
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub enum ExtensionTag {
     /// UTF-8 Semantic Versioning string.
     SemverString = 0x9fc7bc,
