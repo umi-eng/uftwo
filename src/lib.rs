@@ -7,7 +7,7 @@ const MAX_PAYLOAD_SIZE: usize = 476;
 /// Magic numbers.
 pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub enum BlockError {
     /// There was an issue with the input buffer size or alignment.
@@ -95,7 +95,7 @@ impl Block {
         Ok(block)
     }
 
-    /// Returns if the checksum flag is set.
+    /// Returns `true` if the checksum flag is set.
     pub fn has_checksum(&self) -> bool {
         self.flags.contains(Flags::Checksum)
     }
@@ -110,16 +110,18 @@ impl Block {
         }
     }
 
+    /// Returns `true` if the extensions flag is set.
     pub fn has_extensions(&self) -> bool {
         self.flags.contains(Flags::ExtensionTags)
     }
 
+    /// Returns an extension [`Iterator`].
     pub fn extensions(&self) -> Option<Extensions> {
         if self.has_extensions() {
             let start = self.payload_size as usize;
             let start = start.next_multiple_of(Extensions::ALIGN);
             let end = self.data.len();
-            Some(Extensions::new(&self.data[start..end]))
+            Some(Extensions::from_bytes(&self.data[start..end]))
         } else {
             None
         }
@@ -128,8 +130,9 @@ impl Block {
 
 /// Checksum information.
 ///
-/// This allows skipping writing data that is the same.
-#[derive(Debug, AsBytes, FromBytes, FromZeroes)]
+/// This is used to allow skipping over blocks that do not need to be written
+/// because the data has not changed.
+#[derive(Debug, PartialEq, Eq, AsBytes, FromBytes, FromZeroes)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Checksum {
@@ -143,6 +146,7 @@ const _: () = {
     assert!(core::mem::size_of::<Checksum>() == 24);
 };
 
+/// Block flags.
 #[derive(
     Debug, Default, Clone, Copy, PartialEq, Eq, AsBytes, FromBytes, FromZeroes,
 )]
@@ -157,10 +161,15 @@ bitflags::bitflags! {
         const FamilyId = 0x00002000;
         const Checksum = 0x00004000;
         const ExtensionTags = 0x00008000;
-        const _ = !0;
+        const _ = !0; // non exhaustive
     }
 }
 
+/// Extensions access.
+///
+/// Use the `.next()` method to iterate through all of th extensions in the
+/// current block. `.next()` will return `None` when there are no more
+/// extensions left or none defined in the first place.
 #[derive(Debug)]
 #[cfg_attr(defmt, defmt::Format)]
 pub struct Extensions<'a> {
@@ -175,7 +184,8 @@ impl<'a> Extensions<'a> {
     /// Align to 4 byte boundary
     const ALIGN: usize = 4;
 
-    pub fn new(data: &'a [u8]) -> Self {
+    /// Create a new extension iterator from bytes.
+    pub fn from_bytes(data: &'a [u8]) -> Self {
         Self { start: 0, data }
     }
 
@@ -232,6 +242,7 @@ pub struct Extension<'a> {
     pub data: &'a [u8],
 }
 
+/// Extension tag.
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -265,8 +276,6 @@ impl From<u32> for ExtensionTag {
 
 #[cfg(test)]
 mod tests {
-    use zerocopy::AsBytes;
-
     use super::*;
 
     #[test]
