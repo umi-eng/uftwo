@@ -6,6 +6,8 @@ edition = "2021"
 license = "MPL-2.0"
 repository = "https://github.com/umi-eng/uftwo"
 
+exclude = ["example.uf2"]
+
 [dependencies]
 bitflags = "2.5"
 defmt = { version = "0.3", optional = true }
