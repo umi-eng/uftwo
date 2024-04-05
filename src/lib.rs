@@ -1,5 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
+use core::fmt;
 use zerocopy::{AsBytes, FromBytes, FromZeroes};
 
 const MAX_PAYLOAD_SIZE: usize = 476;
@@ -16,6 +17,16 @@ pub enum BlockError {
     MagicNumber,
     /// Payload size too large.
     PayloadSize,
+}
+
+impl fmt::Display for BlockError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InputBuffer => write!(f, "Input buffer"),
+            Self::MagicNumber => write!(f, "Magic number incorrect"),
+            Self::PayloadSize => write!(f, "Payload size too large"),
+        }
+    }
 }
 
 /// Block structure.
