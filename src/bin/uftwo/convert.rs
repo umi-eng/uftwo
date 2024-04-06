@@ -83,16 +83,16 @@ fn bin_to_uf2(
     binary.chunks(256).enumerate().for_each(|(index, chunk)| {
         let mut block = Block::default();
 
-        block.payload_size = chunk.len() as u32;
+        block.data_len = chunk.len() as u32;
         block.target_addr = target_addr as u32;
 
         if let Some(family_id) = family_id {
-            block.file_size_board_family = family_id;
+            block.board_family_id_or_file_size = family_id;
             block.flags = Flags::FamilyId;
         }
 
-        block.block_number = index as u32;
-        block.total_block = total_blocks as u32;
+        block.block = index as u32;
+        block.total_blocks = total_blocks as u32;
 
         block.data[0..chunk.len()].copy_from_slice(chunk);
 
@@ -132,7 +132,7 @@ fn uf2_to_bin(input: PathBuf, output: PathBuf) -> anyhow::Result<()> {
 
         let block = Block::from_bytes(&buf).map_err(Error::msg)?;
 
-        binary.extend(&buf[0..(block.payload_size as usize)]);
+        binary.extend(&buf[0..(block.data_len as usize)]);
 
         total_blocks += 1;
     }

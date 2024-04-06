@@ -45,13 +45,13 @@ pub struct Block {
     /// Address in flash where the data should be written.
     pub target_addr: u32,
     /// Number of bytes used in data.
-    pub payload_size: u32,
+    pub data_len: u32,
     //// Sequential block number, starting at 0.
-    pub block_number: u32,
+    pub block: u32,
     /// Total number of blocks.
-    pub total_block: u32,
+    pub total_blocks: u32,
     /// File size or board family ID or zero.
-    pub file_size_board_family: u32,
+    pub board_family_id_or_file_size: u32,
     /// Payload data, padded with zeros.
     ///
     /// When the MD5 checksum flag is set, the last 24 bytes hold the checksum
@@ -73,10 +73,10 @@ impl Default for Block {
             magic_start_1: MAGIC_NUMBER[1],
             flags: Flags::default(),
             target_addr: 0,
-            payload_size: 0,
-            block_number: 0,
-            total_block: 0,
-            file_size_board_family: 0,
+            data_len: 0,
+            block: 0,
+            total_blocks: 0,
+            board_family_id_or_file_size: 0,
             data: [0; 476],
             magic_end: MAGIC_NUMBER[2],
         }
@@ -99,7 +99,7 @@ impl Block {
             return Err(BlockError::MagicNumber);
         }
 
-        if block.payload_size > MAX_PAYLOAD_SIZE as u32 {
+        if block.data_len > MAX_PAYLOAD_SIZE as u32 {
             return Err(BlockError::PayloadSize);
         }
 
@@ -129,7 +129,7 @@ impl Block {
     /// Returns an extension [`Iterator`].
     pub fn extensions(&self) -> Option<Extensions> {
         if self.has_extensions() {
-            let start = self.payload_size as usize;
+            let start = self.data_len as usize;
             let start = start.next_multiple_of(Extensions::ALIGN);
             let end = self.data.len();
             Some(Extensions::from_bytes(&self.data[start..end]))
@@ -310,7 +310,7 @@ mod tests {
     fn block_extension() {
         let mut block = Block {
             flags: Flags::ExtensionTags,
-            payload_size: 0,
+            data_len: 0,
             ..Default::default()
         };
 
@@ -363,9 +363,9 @@ mod tests {
         assert_eq!(block.magic_end, MAGIC_NUMBER[2]);
 
         assert_eq!(block.target_addr, 0x2000);
-        assert_eq!(block.payload_size, 256);
-        assert_eq!(block.block_number, 0);
-        assert_eq!(block.total_block, 1438);
-        assert_eq!(block.file_size_board_family, 0);
+        assert_eq!(block.data_len, 256);
+        assert_eq!(block.block, 0);
+        assert_eq!(block.total_blocks, 1438);
+        assert_eq!(block.board_family_id_or_file_size, 0);
     }
 }
