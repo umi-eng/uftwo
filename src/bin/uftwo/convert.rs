@@ -15,6 +15,7 @@ pub struct Cmd {
     input_path: PathBuf,
     #[arg(value_name = "OUTPUT")]
     output_path: Option<PathBuf>,
+    /// Target address in flash memory.
     #[clap(long, default_value_t = 0x2000)]
     target_addr: usize,
 }
