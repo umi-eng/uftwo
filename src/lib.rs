@@ -84,6 +84,33 @@ impl Default for Block {
 }
 
 impl Block {
+    pub fn new(
+        block: usize,
+        total_blocks: usize,
+        data: &[u8],
+        target_addr: usize,
+    ) -> Self {
+        // default with correct magic numbers
+        let mut this = Self::default();
+
+        // block index and total
+        assert!(block <= total_blocks);
+        assert!(block <= u32::MAX as usize);
+        this.block = block as u32;
+        assert!(total_blocks <= u32::MAX as usize);
+        this.total_blocks = total_blocks as u32;
+
+        // target flash address
+        assert!(target_addr <= u32::MAX as usize);
+        this.target_addr = target_addr as u32;
+
+        // copy over data
+        assert!(data.len() <= this.data.len());
+        this.data[0..data.len()].copy_from_slice(data);
+
+        this
+    }
+
     /// Construct a [`Block`] from a slice.
     ///
     /// Returns an error if critical fields are incorrect.
