@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
-use core::fmt;
+use core::{fmt, mem::size_of};
 use zerocopy::{AsBytes, FromBytes, FromZeroes};
 
 const MAX_PAYLOAD_SIZE: usize = 476;
@@ -119,6 +119,14 @@ impl Block {
         } else {
             None
         }
+    }
+
+    /// Set the checksum for this block.
+    pub fn set_checksum(&mut self, checksum: Checksum) {
+        let begin = self.data.len() - size_of::<Checksum>();
+        let end = self.data.len();
+
+        self.data[begin..end].copy_from_slice(checksum.as_bytes())
     }
 
     /// Returns `true` if the extensions flag is set.
