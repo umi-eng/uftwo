@@ -8,11 +8,19 @@ repository = "https://github.com/umi-eng/uftwo"
 
 exclude = ["example.uf2"]
 
+[[bin]]
+name = "uftwo"
+required-features = ["cli"]
+
 [dependencies]
+anyhow = { version = "1.0.81", optional = true }
 bitflags = "2.5"
+clap = { version = "4.5.4", optional = true, features = ["derive"] }
 defmt = { version = "0.3", optional = true }
 num = { version = "0.4.1", default-features = false }
 zerocopy = { version = "0.7", features = ["derive"] }
 
 [features]
 defmt-03 = ["dep:defmt"]
+
+cli = ["dep:clap", "dep:anyhow"]
