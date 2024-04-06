@@ -6,7 +6,7 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use uftwo::Block;
+use uftwo::{Block, Flags};
 use zerocopy::AsBytes;
 
 #[derive(Parser)]
@@ -18,6 +18,9 @@ pub struct Cmd {
     /// Target address in flash memory.
     #[clap(long, default_value_t = 0x2000)]
     target_addr: usize,
+    /// Family ID.
+    #[clap(long)]
+    family_id: Option<u32>,
 }
 
 impl Cmd {
@@ -52,7 +55,12 @@ impl Cmd {
         if input_uf2 {
             uf2_to_bin(self.input_path, output_path)
         } else {
-            bin_to_uf2(self.input_path, output_path, self.target_addr)
+            bin_to_uf2(
+                self.input_path,
+                output_path,
+                self.target_addr,
+                self.family_id,
+            )
         }
     }
 }
@@ -62,6 +70,7 @@ fn bin_to_uf2(
     input: PathBuf,
     output: PathBuf,
     target_addr: usize,
+    family_id: Option<u32>,
 ) -> anyhow::Result<()> {
     let mut input_file = File::open(input)?;
     let mut output_file = File::create(output)?;
@@ -76,6 +85,11 @@ fn bin_to_uf2(
 
         block.payload_size = chunk.len() as u32;
         block.target_addr = target_addr as u32;
+
+        if let Some(family_id) = family_id {
+            block.file_size_board_family = family_id;
+            block.flags = Flags::FamilyId;
+        }
 
         block.block_number = index as u32;
         block.total_block = total_blocks as u32;
