@@ -32,7 +32,7 @@ impl fmt::Display for BlockError {
 /// Block structure.
 ///
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
-#[derive(Debug, AsBytes, FromBytes, FromZeroes)]
+#[derive(Debug, Copy, Clone, AsBytes, FromBytes, FromZeroes)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Block {
