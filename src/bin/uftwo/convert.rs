@@ -1,5 +1,6 @@
 use anyhow::Error;
 use clap::Parser;
+use clap_num::maybe_hex;
 use std::{
     ffi::OsStr,
     fs::File,
@@ -16,8 +17,8 @@ pub struct Cmd {
     #[arg(value_name = "OUTPUT")]
     output_path: Option<PathBuf>,
     /// Target address in flash memory.
-    #[clap(long, default_value_t = 0x2000)]
-    target_addr: usize,
+    #[clap(long, value_parser=maybe_hex::<u32>, default_value_t = 0x2000)]
+    target_addr: u32,
     /// Family ID.
     #[clap(long)]
     family_id: Option<u32>,
@@ -69,7 +70,7 @@ impl Cmd {
 fn bin_to_uf2(
     input: PathBuf,
     output: PathBuf,
-    target_addr: usize,
+    target_addr: u32,
     family_id: Option<u32>,
 ) -> anyhow::Result<()> {
     let mut input_file = File::open(input)?;
