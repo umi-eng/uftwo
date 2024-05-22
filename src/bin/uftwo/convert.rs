@@ -17,7 +17,7 @@ pub struct Cmd {
     #[arg(value_name = "OUTPUT")]
     output_path: Option<PathBuf>,
     /// Target address in flash memory.
-    #[clap(long, value_parser=maybe_hex::<u32>, default_value_t = 0x2000)]
+    #[clap(long, value_parser=maybe_hex::<u32>)]
     target_addr: u32,
     /// Family ID.
     #[clap(long)]
