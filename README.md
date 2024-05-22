@@ -9,7 +9,7 @@ Warning: whilst this library is `0.1.x` there will be no SemVer compatibility gu
 ## Getting started
 
 ```shell
-cargo add uftwo --git https://github.com/umi-eng/uftwo.git
+cargo install uftwo --features="cli"
 ```
 
 ## Features
