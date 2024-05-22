@@ -114,7 +114,7 @@ impl Block {
     /// Construct a [`Block`] from a slice.
     ///
     /// Returns an error if critical fields are incorrect.
-    pub fn from_bytes(buf: &[u8]) -> Result<&Block, BlockError> {
+    pub fn from_bytes(buf: &[u8]) -> Result<Block, BlockError> {
         let block = match Block::ref_from(buf) {
             Some(b) => b,
             None => return Err(BlockError::InputBuffer),
@@ -130,7 +130,7 @@ impl Block {
             return Err(BlockError::PayloadSize);
         }
 
-        Ok(block)
+        Ok(*block)
     }
 
     /// Returns `true` if the checksum flag is set.
