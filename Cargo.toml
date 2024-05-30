@@ -16,7 +16,7 @@ required-features = ["cli"]
 anyhow = { version = "1.0.81", optional = true }
 bitflags = "2.5"
 clap = { version = "4.5.4", optional = true, features = ["derive"] }
-clap-num = "1.1.1"
+clap-num = { version = "1.1.1", optional = true }
 defmt = { version = "0.3", optional = true }
 num = { version = "0.4.1", default-features = false }
 zerocopy = { version = "0.7", features = ["derive"] }
@@ -24,4 +24,4 @@ zerocopy = { version = "0.7", features = ["derive"] }
 [features]
 defmt-03 = ["dep:defmt"]
 
-cli = ["dep:clap", "dep:anyhow"]
+cli = ["dep:clap", "dep:clap-num", "dep:anyhow"]
