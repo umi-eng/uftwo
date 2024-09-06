@@ -6,7 +6,13 @@ Why the name? `uf2` was already taken and appears to be abandoned.
 
 Warning: whilst this library is `0.1.x` there will be no SemVer compatibility guarantees. Use at your own risk.
 
-## Getting started
+## Using the library
+
+```shell
+cargo add uftwo
+```
+
+## Using the CLI
 
 ```shell
 cargo install uftwo --features="cli"
