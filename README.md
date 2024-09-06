@@ -1,5 +1,8 @@
 # `uftwo`
 
+[![Crate](https://img.shields.io/crates/v/uftwo.svg)](https://crates.io/crates/uftwo)
+[![Docs](https://docs.rs/uftwo/badge.svg)](https://docs.rs/uftwo)
+
 For working with the [UF2 file format](https://github.com/microsoft/uf2).
 
 Why the name? `uf2` was already taken and appears to be abandoned.
