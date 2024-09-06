@@ -29,7 +29,7 @@ impl Cmd {
         let extension = match self.input_path.extension() {
             Some(ext) => ext,
             None => {
-                return Err(Error::msg("failed"));
+                return Err(Error::msg("Input file missing extension."));
             }
         };
 
