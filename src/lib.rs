@@ -8,6 +8,7 @@ const MAX_PAYLOAD_SIZE: usize = 476;
 /// Magic numbers.
 pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
 
+/// Block error kind.
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub enum BlockError {
