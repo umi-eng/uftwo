@@ -1,7 +1,7 @@
 #![cfg_attr(not(test), no_std)]
 
 use core::{fmt, mem::size_of};
-use zerocopy::{AsBytes, FromBytes, FromZeroes};
+use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 const MAX_PAYLOAD_SIZE: usize = 476;
 
@@ -33,7 +33,7 @@ impl fmt::Display for BlockError {
 /// Block structure.
 ///
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
-#[derive(Debug, Copy, Clone, AsBytes, FromBytes, FromZeroes)]
+#[derive(Debug, Copy, Clone, Immutable, KnownLayout, FromBytes, IntoBytes)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Block {
@@ -116,9 +116,10 @@ impl Block {
     ///
     /// Returns an error if critical fields are incorrect.
     pub fn from_bytes(buf: &[u8]) -> Result<Block, BlockError> {
-        let block = match Block::ref_from(buf) {
-            Some(b) => b,
-            None => return Err(BlockError::InputBuffer),
+        let block = match Block::ref_from_bytes(buf) {
+            Ok(b) => b,
+            // INFO: e could be used for more detailed error
+            Err(_e) => return Err(BlockError::InputBuffer),
         };
 
         if [block.magic_start_0, block.magic_start_1, block.magic_end]
@@ -143,7 +144,7 @@ impl Block {
     pub fn checksum(&self) -> Option<&Checksum> {
         if self.has_checksum() {
             let len = self.data.len();
-            Checksum::ref_from(&self.data[len - 24..len])
+            Checksum::ref_from_bytes(&self.data[len - 24..len]).ok()
         } else {
             None
         }
@@ -163,7 +164,7 @@ impl Block {
     }
 
     /// Returns an extension [`Iterator`].
-    pub fn extensions(&self) -> Option<Extensions> {
+    pub fn extensions(&self) -> Option<Extensions<'_>> {
         if self.has_extensions() {
             let start = self.data_len as usize;
             let start = start.next_multiple_of(Extensions::ALIGN);
@@ -179,7 +180,9 @@ impl Block {
 ///
 /// This is used to allow skipping over blocks that do not need to be written
 /// because the data has not changed.
-#[derive(Debug, PartialEq, Eq, AsBytes, FromBytes, FromZeroes)]
+#[derive(
+    Debug, PartialEq, Eq, Immutable, KnownLayout, FromBytes, IntoBytes,
+)]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
 pub struct Checksum {
@@ -195,7 +198,7 @@ const _: () = {
 
 /// Block flags.
 #[derive(
-    Debug, Default, Clone, Copy, PartialEq, Eq, AsBytes, FromBytes, FromZeroes,
+    Debug, Default, Clone, Copy, PartialEq, Eq, Immutable, FromBytes, IntoBytes,
 )]
 #[repr(C)]
 #[cfg_attr(feature = "defmt-03", derive(defmt::Format))]

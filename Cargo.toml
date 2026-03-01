@@ -15,7 +15,7 @@ required-features = ["cli"]
 [dependencies]
 bitflags = "2.5"
 defmt = { version = "0.3", optional = true }
-zerocopy = { version = "0.7", features = ["derive"] }
+zerocopy = { version = "0.8.40", features = ["derive"] }
 
 # CLI only
 clap = { version = "4.5.4", optional = true, features = ["derive"] }
