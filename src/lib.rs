@@ -10,7 +10,7 @@ pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
 
 /// Block error kind.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BlockError {
     /// There was an issue with the input buffer size or alignment.
     InputBuffer,
@@ -35,7 +35,7 @@ impl fmt::Display for BlockError {
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
 #[derive(Debug, Copy, Clone, Immutable, KnownLayout, FromBytes, IntoBytes)]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Block {
     /// First magic number.
     magic_start_0: u32,
@@ -192,7 +192,7 @@ impl Block {
     Debug, PartialEq, Eq, Immutable, KnownLayout, FromBytes, IntoBytes,
 )]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Checksum {
     start: u32,
     length: u32,
@@ -209,7 +209,7 @@ const _: () = {
     Debug, Default, Clone, Copy, PartialEq, Eq, Immutable, FromBytes, IntoBytes,
 )]
 #[repr(C)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Flags(u32);
 
 bitflags::bitflags! {
@@ -229,7 +229,7 @@ bitflags::bitflags! {
 /// current block. `.next()` will return `None` when there are no more
 /// extensions left or none defined in the first place.
 #[derive(Debug)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Extensions<'a> {
     start: usize,
     data: &'a [u8],
@@ -294,7 +294,7 @@ impl<'a> Iterator for Extensions<'a> {
 /// Converting the extension tag to UTF-8 strings or otherwise is an exercise
 /// left to the user.
 #[derive(Debug)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Extension<'a> {
     pub tag: ExtensionTag,
     pub data: &'a [u8],
@@ -303,7 +303,7 @@ pub struct Extension<'a> {
 /// Extension tag.
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
-#[cfg_attr(feature = "defmt-03", derive(defmt::Format))]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ExtensionTag {
     /// UTF-8 Semantic Versioning string.
     SemverString = 0x9fc7bc,

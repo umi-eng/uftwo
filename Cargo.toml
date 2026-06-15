@@ -24,6 +24,6 @@ num = { version = "0.4.1", default-features = false }
 anyhow = { version = "1.0.81", optional = true }
 
 [features]
-defmt-03 = ["dep:defmt"]
+defmt = ["dep:defmt"]
 
 cli = ["dep:clap", "dep:clap-num", "dep:anyhow"]
