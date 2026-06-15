@@ -175,7 +175,7 @@ impl Block {
     }
 
     /// Returns the board family ID if the family ID flag is set.
-    pub fn get_board_family_id(&self) -> Option<u32> {
+    pub fn board_family_id(&self) -> Option<u32> {
         match self.flags.contains(Flags::FamilyId) {
             true => Some(self.board_family_id_or_file_size),
             false => None,
