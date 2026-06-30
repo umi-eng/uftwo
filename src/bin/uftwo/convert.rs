@@ -7,8 +7,8 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use uftwo::{Block, Flags};
-use zerocopy::AsBytes;
+use uftwo::{Block, BLOCK_SIZE, Flags};
+use zerocopy::IntoBytes;
 
 #[derive(Parser)]
 pub struct Cmd {
@@ -88,17 +88,17 @@ fn bin_to_uf2(
 
         block.data_len = chunk.len() as u32;
         block.target_addr = (target_addr + offset) as u32;
-        offset += block.data_len;
 
         if let Some(family_id) = family_id {
             block.board_family_id_or_file_size = family_id;
-            block.flags = Flags::FamilyId;
+            block.flags |= Flags::FamilyId;
         }
 
         block.block = index as u32;
         block.total_blocks = total_blocks as u32;
 
         block.data[0..chunk.len()].copy_from_slice(chunk);
+        offset += block.data_len;
 
         output_file.write(block.as_bytes()).unwrap();
     });
@@ -126,17 +126,17 @@ fn uf2_to_bin(input: PathBuf, output: PathBuf) -> anyhow::Result<()> {
     let mut total_blocks = 0;
 
     loop {
-        let mut buf = [0; 512];
+        let mut buf = [0; BLOCK_SIZE];
 
         let bytes = input_file.read(&mut buf)?;
 
-        if bytes < 512 {
+        if bytes < BLOCK_SIZE {
             break;
         }
 
         let block = Block::from_bytes(&buf).map_err(Error::msg)?;
 
-        binary.extend(&buf[0..(block.data_len as usize)]);
+        binary.extend(block.data());
 
         total_blocks += 1;
     }

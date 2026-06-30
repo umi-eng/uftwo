@@ -1,9 +1,13 @@
 #![cfg_attr(not(test), no_std)]
 
-use core::{fmt, mem::size_of};
+use core::fmt;
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
-const MAX_PAYLOAD_SIZE: usize = 476;
+/// Block size in bytes (UF2 specification).
+pub const BLOCK_SIZE: usize = 512;
+
+/// Maximum payload size in a UF2 block.
+pub const MAX_PAYLOAD_SIZE: usize = 476;
 
 /// Magic numbers.
 pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
@@ -30,6 +34,12 @@ impl fmt::Display for BlockError {
     }
 }
 
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(feature = "std")]
+impl std::error::Error for BlockError {}
+
 /// Block structure.
 ///
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
@@ -38,16 +48,16 @@ impl fmt::Display for BlockError {
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Block {
     /// First magic number.
-    magic_start_0: u32,
+    pub magic_start_0: u32,
     /// Second magic number.
-    magic_start_1: u32,
+    pub magic_start_1: u32,
     /// Flags.
     pub flags: Flags,
     /// Address in flash where the data should be written.
     pub target_addr: u32,
     /// Number of bytes used in data.
     pub data_len: u32,
-    //// Sequential block number, starting at 0.
+    /// Sequential block number, starting at 0.
     pub block: u32,
     /// Total number of blocks.
     pub total_blocks: u32,
@@ -59,12 +69,12 @@ pub struct Block {
     /// as well as address start and length.
     pub data: [u8; MAX_PAYLOAD_SIZE],
     /// Final magic number.
-    magic_end: u32,
+    pub magic_end: u32,
 }
 
 const _: () = {
     // Ensure block is correct size.
-    assert!(core::mem::size_of::<Block>() == 512);
+    assert!(core::mem::size_of::<Block>() == BLOCK_SIZE);
 };
 
 impl Default for Block {
@@ -78,7 +88,7 @@ impl Default for Block {
             block: 0,
             total_blocks: 0,
             board_family_id_or_file_size: 0,
-            data: [0; 476],
+            data: [0; MAX_PAYLOAD_SIZE],
             magic_end: MAGIC_NUMBER[2],
         }
     }
@@ -182,6 +192,19 @@ impl Block {
             false => None,
         }
     }
+
+    /// Returns the payload data slice.
+    pub fn data(&self) -> &[u8] {
+        &self.data[0..self.data_len as usize]
+    }
+
+    /// Returns the file size if the family ID flag is not set.
+    pub fn file_size(&self) -> Option<u32> {
+        match self.flags.contains(Flags::FamilyId) {
+            false => Some(self.board_family_id_or_file_size),
+            true => None,
+        }
+    }
 }
 
 /// Checksum information.
@@ -194,9 +217,9 @@ impl Block {
 #[repr(C)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Checksum {
-    start: u32,
-    length: u32,
-    checksum: [u8; 16],
+    pub start: u32,
+    pub length: u32,
+    pub checksum: [u8; 16],
 }
 
 const _: () = {
@@ -300,6 +323,11 @@ pub struct Extension<'a> {
     pub data: &'a [u8],
 }
 
+impl<'a> Extension<'a> {
+    /// Length byte + tag bytes.
+    pub const HEADER_SIZE: usize = 4;
+}
+
 /// Extension tag.
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
@@ -310,7 +338,7 @@ pub enum ExtensionTag {
     /// UTF-8 device description.
     DescriptionString = 0x650d9d,
     /// Page size of target device.
-    TagetPageSize = 0x0be9f7,
+    TargetPageSize = 0x0be9f7,
     /// SHA-2 checksum of the firmware.
     Sha2Checksum = 0xb46db0,
     /// Device type identifier.
@@ -324,10 +352,36 @@ impl From<u32> for ExtensionTag {
         match value {
             0x9fc7bc => Self::SemverString,
             0x650d9d => Self::DescriptionString,
-            0x0be9f7 => Self::TagetPageSize,
+            0x0be9f7 => Self::TargetPageSize,
             0xb46db0 => Self::Sha2Checksum,
             0xc8a729 => Self::DeviceTypeId,
             _ => Self::Other(value), // still valid, just unknown to us
+        }
+    }
+}
+
+impl ExtensionTag {
+    /// Convert the extension tag to its 3-byte representation.
+    pub fn to_bytes(&self) -> [u8; 3] {
+        match self {
+            ExtensionTag::SemverString => {
+                0x9fc7bc_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::DescriptionString => {
+                0x650d9d_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::TargetPageSize => {
+                0x0be9f7_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::Sha2Checksum => {
+                0xb46db0_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::DeviceTypeId => {
+                0xc8a729_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::Other(value) => {
+                value.to_le_bytes()[0..3].try_into().unwrap()
+            }
         }
     }
 }
