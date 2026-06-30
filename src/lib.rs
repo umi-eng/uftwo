@@ -186,6 +186,19 @@ impl Block {
             false => None,
         }
     }
+
+    /// Returns the payload data slice.
+    pub fn data(&self) -> &[u8] {
+        &self.data[0..self.data_len as usize]
+    }
+
+    /// Returns the file size if the family ID flag is not set.
+    pub fn file_size(&self) -> Option<u32> {
+        match self.flags.contains(Flags::FamilyId) {
+            false => Some(self.board_family_id_or_file_size),
+            true => None,
+        }
+    }
 }
 
 /// Checksum information.
