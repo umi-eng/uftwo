@@ -42,16 +42,16 @@ impl fmt::Display for BlockError {
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Block {
     /// First magic number.
-    magic_start_0: u32,
+    pub magic_start_0: u32,
     /// Second magic number.
-    magic_start_1: u32,
+    pub magic_start_1: u32,
     /// Flags.
     pub flags: Flags,
     /// Address in flash where the data should be written.
     pub target_addr: u32,
     /// Number of bytes used in data.
     pub data_len: u32,
-    //// Sequential block number, starting at 0.
+    /// Sequential block number, starting at 0.
     pub block: u32,
     /// Total number of blocks.
     pub total_blocks: u32,
@@ -63,7 +63,7 @@ pub struct Block {
     /// as well as address start and length.
     pub data: [u8; MAX_PAYLOAD_SIZE],
     /// Final magic number.
-    magic_end: u32,
+    pub magic_end: u32,
 }
 
 const _: () = {
