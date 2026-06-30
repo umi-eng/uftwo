@@ -211,9 +211,9 @@ impl Block {
 #[repr(C)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Checksum {
-    start: u32,
-    length: u32,
-    checksum: [u8; 16],
+    pub start: u32,
+    pub length: u32,
+    pub checksum: [u8; 16],
 }
 
 const _: () = {
