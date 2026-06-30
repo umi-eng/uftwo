@@ -7,8 +7,8 @@ use std::{
     io::{Read, Write},
     path::PathBuf,
 };
-use uftwo::{Block, Flags};
-use zerocopy::AsBytes;
+use uftwo::{Block, BLOCK_SIZE, Flags};
+use zerocopy::IntoBytes;
 
 #[derive(Parser)]
 pub struct Cmd {
@@ -126,11 +126,11 @@ fn uf2_to_bin(input: PathBuf, output: PathBuf) -> anyhow::Result<()> {
     let mut total_blocks = 0;
 
     loop {
-        let mut buf = [0; 512];
+        let mut buf = [0; BLOCK_SIZE];
 
         let bytes = input_file.read(&mut buf)?;
 
-        if bytes < 512 {
+        if bytes < BLOCK_SIZE {
             break;
         }
 

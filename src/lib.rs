@@ -3,7 +3,11 @@
 use core::{fmt, mem::size_of};
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
-const MAX_PAYLOAD_SIZE: usize = 476;
+/// Block size in bytes (UF2 specification).
+pub const BLOCK_SIZE: usize = 512;
+
+/// Maximum payload size in a UF2 block.
+pub const MAX_PAYLOAD_SIZE: usize = 476;
 
 /// Magic numbers.
 pub const MAGIC_NUMBER: [u32; 3] = [0x0A324655, 0x9E5D5157, 0x0AB16F30];
@@ -64,7 +68,7 @@ pub struct Block {
 
 const _: () = {
     // Ensure block is correct size.
-    assert!(core::mem::size_of::<Block>() == 512);
+    assert!(core::mem::size_of::<Block>() == BLOCK_SIZE);
 };
 
 impl Default for Block {
@@ -78,7 +82,7 @@ impl Default for Block {
             block: 0,
             total_blocks: 0,
             board_family_id_or_file_size: 0,
-            data: [0; 476],
+            data: [0; MAX_PAYLOAD_SIZE],
             magic_end: MAGIC_NUMBER[2],
         }
     }
