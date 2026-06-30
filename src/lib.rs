@@ -1,6 +1,6 @@
 #![cfg_attr(not(test), no_std)]
 
-use core::{fmt, mem::size_of};
+use core::fmt;
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 /// Block size in bytes (UF2 specification).
