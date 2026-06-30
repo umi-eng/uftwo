@@ -25,5 +25,6 @@ anyhow = { version = "1.0.81", optional = true }
 
 [features]
 defmt = ["dep:defmt"]
+std = []
 
-cli = ["dep:clap", "dep:clap-num", "dep:anyhow"]
+cli = ["std", "dep:clap", "dep:clap-num", "dep:anyhow"]

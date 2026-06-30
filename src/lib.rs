@@ -34,6 +34,12 @@ impl fmt::Display for BlockError {
     }
 }
 
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(feature = "std")]
+impl std::error::Error for BlockError {}
+
 /// Block structure.
 ///
 /// Length is fixed at 512 bytes with a variable size data section up to 476 bytes.
