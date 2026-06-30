@@ -317,6 +317,11 @@ pub struct Extension<'a> {
     pub data: &'a [u8],
 }
 
+impl<'a> Extension<'a> {
+    /// Length byte + tag bytes.
+    pub const HEADER_SIZE: usize = 4;
+}
+
 /// Extension tag.
 #[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
@@ -327,7 +332,7 @@ pub enum ExtensionTag {
     /// UTF-8 device description.
     DescriptionString = 0x650d9d,
     /// Page size of target device.
-    TagetPageSize = 0x0be9f7,
+    TargetPageSize = 0x0be9f7,
     /// SHA-2 checksum of the firmware.
     Sha2Checksum = 0xb46db0,
     /// Device type identifier.
@@ -341,10 +346,36 @@ impl From<u32> for ExtensionTag {
         match value {
             0x9fc7bc => Self::SemverString,
             0x650d9d => Self::DescriptionString,
-            0x0be9f7 => Self::TagetPageSize,
+            0x0be9f7 => Self::TargetPageSize,
             0xb46db0 => Self::Sha2Checksum,
             0xc8a729 => Self::DeviceTypeId,
             _ => Self::Other(value), // still valid, just unknown to us
+        }
+    }
+}
+
+impl ExtensionTag {
+    /// Convert the extension tag to its 3-byte representation.
+    pub fn to_bytes(&self) -> [u8; 3] {
+        match self {
+            ExtensionTag::SemverString => {
+                0x9fc7bc_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::DescriptionString => {
+                0x650d9d_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::TargetPageSize => {
+                0x0be9f7_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::Sha2Checksum => {
+                0xb46db0_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::DeviceTypeId => {
+                0xc8a729_u32.to_le_bytes()[0..3].try_into().unwrap()
+            }
+            ExtensionTag::Other(value) => {
+                value.to_le_bytes()[0..3].try_into().unwrap()
+            }
         }
     }
 }
